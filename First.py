@@ -12,7 +12,7 @@ sb = st.sidebar
 dfdata = pd.read_excel('Data/marks.xlsx')
 
 def get_compare_state():
-    with sb.expander('Compare_state'):
+    with sb.expander('Compare state'):
         compare_state = st.radio('Compare State',['pick','Slide','Select'],label_visibility='collapsed') 
 
 
@@ -167,7 +167,7 @@ with a:
             st.plotly_chart(cchartf(fig),use_container_width=True)
 
 with cd:
-    with sb.expander('Data_state'):
+    with sb.expander('Data state'):
         data_state = st.radio('nothing',['DataFrame','table'])
     with st.expander('Averages'):
         if data_state == 'DataFrame':
