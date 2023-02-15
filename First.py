@@ -4,9 +4,21 @@ from collections import Counter
 import plotly.graph_objects as go
 import plotly.express as px
 
+# https://yeshwanthrams-midmarks3-first-sxmyrk.streamlit.app/
+
 st.set_page_config(layout='wide')
+sb = st.sidebar
 
 dfdata = pd.read_excel('Data/marks.xlsx')
+
+def get_compare_state():
+    with sb.expander('Compare_state'):
+        compare_state = st.radio('Compare State',['pick','Slide','Select'],label_visibility='collapsed') 
+
+
+    return compare_state
+    
+compare_state = get_compare_state()
 
 def clean():
     rdata = dfdata
@@ -54,7 +66,7 @@ def get_averages():
 
     return rdf 
 
-a,m= st.tabs(['Avgs','Marks'])
+a,cd = st.tabs(['Avgs','Data'])
 
 def cchartf(figure: px._chart_types) -> px._chart_types:
     """
@@ -73,7 +85,10 @@ def cchartf(figure: px._chart_types) -> px._chart_types:
     return figure
 
 with a:
-    c = st.columns(3)
+    if compare_state == 'pick':
+        c = st.columns([1,2])
+    elif compare_state:
+        c = st.columns(3)
 
     avgs = get_averages()
 
@@ -85,31 +100,65 @@ with a:
         section_selection = st.selectbox('section: ',list(set(avgs['Section'])))
 
     savg = avgs[avgs['Section'] == section_selection]
-    with c[1]:
-        student1 = st.selectbox('Roll No',savg['Roll.No'].tolist())
-    with c[2]:
-        student2 = st.selectbox('Roll No2',savg['Roll.No'].tolist())
+
+    students = []
+    student2 = student1 = None
+
+    avgslist = savg['Roll.No'].tolist()
+    if compare_state == 'Slide':
+        with c[1]:
+            student1 = st.select_slider('First rollno',avgslist)
+        with c[2]:
+            student2 = st.select_slider('Second rollno',avgslist)
+    elif compare_state == 'pick':
+        with c[1]:
+            students = st.multiselect('Students selection',avgslist,default=avgslist[0],max_selections=4)
+    else:
+        with c[1]:
+            student1 = st.selectbox('First rollno',avgslist)
+        with c[2]:
+            student2 = st.selectbox('Second rollno',avgslist)
+
+
     
-    est1 = avgs[avgs['Roll.No'] == student1].reset_index(drop=True)
-    est2 = avgs[avgs['Roll.No'] == student2].reset_index(drop=True)
-    # st.write(avgs[avgs['Roll.No'] == student].reset_index(drop=True))
-    # st.write(est[est['Roll.No'] == student].loc[0,"PDSM_Avg":"Biology for Engineers (BE)_Avg"].tolist())
+    datastudents = []
+    if students: 
+        for n in students:
+            est = avgs[avgs['Roll.No'] == n].reset_index(drop=True)
+            marks_list = est[est['Roll.No'] == n].loc[0,"PDSM_Avg":"Biology for Engineers (BE)_Avg"].tolist()
 
-    marks_list1 = est1[est1['Roll.No'] == student1].loc[0,"PDSM_Avg":"Biology for Engineers (BE)_Avg"].tolist()
-    marks_list2 = est2[est2['Roll.No'] == student2].loc[0,"PDSM_Avg":"Biology for Engineers (BE)_Avg"].tolist()
-
-    fig = go.Figure(data=[
-        go.Scatter(name=student1,x=subjects,y=marks_list1,mode='lines+markers'),
-        go.Scatter(name=student2,x=subjects,y=marks_list2,mode='lines+markers')
-    ])
-
-    with st.expander('display',expanded = True):
-        stoggle = st.radio('Compare',['first','second'],horizontal=True,label_visibility='collapsed')
-        st.plotly_chart(cchartf(fig),use_container_width=True)
+            datastudents.append(go.Scatter(name=n,x=subjects,y=marks_list,mode='lines+markers')) 
 
 
+    if students and datastudents:
+        fig = go.Figure(data=datastudents)
+        with st.expander('display',expanded = True):
+            st.plotly_chart(cchartf(fig),use_container_width=True)
 
+    elif student1 and student2:
+        est1 = avgs[avgs['Roll.No'] == student1].reset_index(drop=True)
+        est2 = avgs[avgs['Roll.No'] == student2].reset_index(drop=True)
+        # st.write(avgs[avgs['Roll.No'] == student].reset_index(drop=True))
+        # st.write(est[est['Roll.No'] == student].loc[0,"PDSM_Avg":"Biology for Engineers (BE)_Avg"].tolist())
 
+        marks_list1 = est1[est1['Roll.No'] == student1].loc[0,"PDSM_Avg":"Biology for Engineers (BE)_Avg"].tolist()
+        marks_list2 = est2[est2['Roll.No'] == student2].loc[0,"PDSM_Avg":"Biology for Engineers (BE)_Avg"].tolist()
 
+        fig = go.Figure(data=[
+            go.Scatter(name=student1,x=subjects,y=marks_list1,mode='lines+markers'),
+            go.Scatter(name=student2,x=subjects,y=marks_list2,mode='lines+markers')
+        ])
 
+        with st.expander('display',expanded = True):
+            # stoggle = st.radio('Compare',['first','second'],horizontal=True,label_visibility='collapsed')
+            st.plotly_chart(cchartf(fig),use_container_width=True)
+
+with cd:
+    with sb.expander('Data_state'):
+        data_state = st.radio('nothing',['DataFrame','table'])
+    with st.expander('Averages'):
+        if data_state == 'DataFrame':
+            st.dataframe(get_averages())
+        else:
+            st.table(get_averages())
 # st.write(dfdata)
