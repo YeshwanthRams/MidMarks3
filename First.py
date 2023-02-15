@@ -144,7 +144,7 @@ with a:
                 orientation="h"
             )
         )
-        with st.expander('display',expanded = True):
+        with st.expander('Graph',expanded = True):
             st.plotly_chart(cchartf(fig),use_container_width=True)
 
 
