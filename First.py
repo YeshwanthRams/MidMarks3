@@ -168,7 +168,7 @@ with a:
 
 with cd:
     with sb.expander('Data state'):
-        data_state = st.radio('nothing',['DataFrame','table'])
+        data_state = st.radio('nothing',['DataFrame','table'],label_visibility='collapsed')
     with st.expander('Averages'):
         if data_state == 'DataFrame':
             st.dataframe(get_averages())
