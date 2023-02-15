@@ -78,6 +78,12 @@ def cchartf(figure: px._chart_types) -> px._chart_types:
     Returns:
         px.Figure: The updated plotly chart.
     """
+    fig.update_layout(
+            legend=dict(
+                y = 1.1,
+                orientation="h"
+            )
+        )
     # figure.update_layout(plot_bgcolor="#000000")
     # figure.update_xaxes(showgrid=False)
     # figure.update_yaxes(showgrid=False)
@@ -132,8 +138,15 @@ with a:
 
     if students and datastudents:
         fig = go.Figure(data=datastudents)
+        fig.update_layout(
+            legend=dict(
+                y = 1.1,
+                orientation="h"
+            )
+        )
         with st.expander('display',expanded = True):
             st.plotly_chart(cchartf(fig),use_container_width=True)
+
 
     elif student1 and student2:
         est1 = avgs[avgs['Roll.No'] == student1].reset_index(drop=True)
