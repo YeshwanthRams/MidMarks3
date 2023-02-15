@@ -20,6 +20,19 @@ def get_compare_state():
     
 compare_state = get_compare_state()
 
+def get_graph_style():
+    with sb.expander('Graph style'):
+        graphy = st.radio('Graphing',['Line','Bar'],label_visibility='collapsed')
+
+    if graphy == 'Line':
+        graphy = go.Line
+    if graphy == 'Bar':
+        graphy = go.Bar
+
+    return graphy
+
+graphy = get_graph_style()
+
 def clean():
     rdata = dfdata
     names_list = rdata.iloc[0].tolist()
@@ -133,7 +146,7 @@ with a:
             est = avgs[avgs['Roll.No'] == n].reset_index(drop=True)
             marks_list = est[est['Roll.No'] == n].loc[0,"PDSM_Avg":"Biology for Engineers (BE)_Avg"].tolist()
 
-            datastudents.append(go.Scatter(name=n,x=subjects,y=marks_list,mode='lines+markers')) 
+            datastudents.append(graphy(name=n,x=subjects,y=marks_list)) 
 
 
     if students and datastudents:
@@ -158,8 +171,8 @@ with a:
         marks_list2 = est2[est2['Roll.No'] == student2].loc[0,"PDSM_Avg":"Biology for Engineers (BE)_Avg"].tolist()
 
         fig = go.Figure(data=[
-            go.Scatter(name=student1,x=subjects,y=marks_list1,mode='lines+markers'),
-            go.Scatter(name=student2,x=subjects,y=marks_list2,mode='lines+markers')
+            graphy(name=student1,x=subjects,y=marks_list1),
+            graphy(name=student2,x=subjects,y=marks_list2)
         ])
 
         with st.expander('display',expanded = True):
