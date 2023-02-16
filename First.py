@@ -134,7 +134,7 @@ with a:
                 avgslist,
                 default=avgslist[0],
                 max_selections=4,
-                help='select upto 4 students'
+                help='can select upto 4 students'
             )
     else:
         with c[1]:
