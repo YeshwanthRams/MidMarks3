@@ -14,8 +14,6 @@ dfdata = pd.read_excel('Data/marks.xlsx')
 def get_compare_state():
     with sb.expander('Compare state'):
         compare_state = st.radio('Compare State',['pick','Slide','Select'],label_visibility='collapsed') 
-
-
     return compare_state
     
 compare_state = get_compare_state()
@@ -131,7 +129,13 @@ with a:
             student2 = st.select_slider('Second rollno',avgslist)
     elif compare_state == 'pick':
         with c[1]:
-            students = st.multiselect('Students selection',avgslist,default=avgslist[0],max_selections=4)
+            students = st.multiselect(
+                'Students selection',
+                avgslist,
+                default=avgslist[0],
+                max_selections=4,
+                help='select upto 4 students'
+            )
     else:
         with c[1]:
             student1 = st.selectbox('First rollno',avgslist)
