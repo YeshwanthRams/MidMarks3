@@ -54,24 +54,27 @@ def get_compare_state():
     return compare_state
 
 def get_graph_style():
+    want_names = False
     with sbex('Graph style'):
+        # NOTE: Just for the graphs, selection of student will only happpen with registration numbers
+        if st.checkbox('Display Names'):
+            want_names = True
         graphy = st.radio(
             'Graphing', ['Line', 'Bar'], label_visibility='collapsed')
 
-    if graphy == 'Line':
-        return go.Line
-    return go.Bar
+    obdata = {'Line':go.Line,'Bar':go.Bar}
+    return obdata[graphy],want_names
 
 def get_data_state():
     with sbex('Data state'):
         data_state = st.radio(
             'nothing', ['DataFrame', 'table'], label_visibility='collapsed')
-    if data_state == 'DataFrame':
-        return st.dataframe
-    return st.table
+        
+    obdata = {'DataFrame':st.dataframe,'table':st.table}
+    return obdata[data_state]
 
 compare_state = get_compare_state()
-graphy = get_graph_style()
+graphy,want_names = get_graph_style()
 data_state = get_data_state()
 
 def cchartf(figure: px._chart_types) -> px._chart_types:
@@ -91,7 +94,7 @@ def cchartf(figure: px._chart_types) -> px._chart_types:
         )
     )
     # figure.update_layout(plot_bgcolor="#000000") figure.update_xaxes(showgrid=False) figure.update_yaxes(showgrid=False)
-    return figure
+    # return figure
 
 def get_averages():
     rdata = clean_data
@@ -99,6 +102,15 @@ def get_averages():
     results = [element for element in c if element.endswith("_Avg")]
     mand = ['Roll.No', 'Name of the Student', 'Section']
     return rdata[mand+results]
+
+def get_names(rollno: str):
+    rdata = clean_data
+    if rollno:
+        r_name = rdata[rdata['Roll.No'] == rollno]['Name of the Student']
+        r_name = r_name.tolist()[0].split(" ")
+        r_name.pop(0)
+        r_name = ' '.join(r_name)
+        return r_name
 
 def averages():
     c = st.columns(3)
@@ -130,7 +142,7 @@ def averages():
                 'Students selection',
                 savg,
                 default=savg[0],
-                max_selections=4,
+                max_selections=7,
                 help='can select upto 4 students'
             )
 
@@ -140,7 +152,8 @@ def averages():
             est = avgs[avgs['Roll.No'] == n].reset_index(drop=True)
             marks_list = est[est['Roll.No'] == n].loc[0,
                                                       "PDSM_Avg":"Biology for Engineers (BE)_Avg"].tolist()
-
+            if want_names:
+                n = get_names(n)
             datastudents.append(graphy(name=n, x=subjects, y=marks_list))
 
     if students and datastudents:
