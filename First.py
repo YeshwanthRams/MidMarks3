@@ -112,6 +112,12 @@ def get_names(rollno: str):
         r_name = ' '.join(r_name)
         return r_name
 
+def get_avg_marks(rollno: str):
+    avgs = get_averages()
+    est = avgs[avgs['Roll.No'] == rollno].reset_index(drop=True)
+    marks_list = est[est['Roll.No'] == rollno].loc[0,"PDSM_Avg":"Biology for Engineers (BE)_Avg"].tolist()
+    return marks_list
+
 def averages():
     c = st.columns(3)
     if compare_state == 'pick':
@@ -148,9 +154,7 @@ def averages():
     datastudents = []
     if students:
         for n in students:
-            est = avgs[avgs['Roll.No'] == n].reset_index(drop=True)
-            marks_list = est[est['Roll.No'] == n].loc[0,
-                                                      "PDSM_Avg":"Biology for Engineers (BE)_Avg"].tolist()
+            marks_list = get_avg_marks(n)
             if want_names:
                 n = get_names(n)
             datastudents.append(graphy(name=n, x=subjects, y=marks_list))
