@@ -120,8 +120,7 @@ def averages():
     avgs = get_averages()
 
     subjects = avgs.columns.tolist()
-    subjects = subjects[3:]
-    subjects = [n.split('_')[0] for n in subjects]
+    subjects = [n.split('_')[0] for n in subjects[3:]]
 
     with c[0]:
         section_selection = st.selectbox(
