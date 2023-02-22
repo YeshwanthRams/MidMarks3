@@ -3,6 +3,7 @@ import streamlit as st
 from collections import Counter
 import plotly.graph_objects as go
 import plotly.express as px
+import helper as h
 
 # https://yeshwanthrams-midmarks3-first-sxmyrk.streamlit.app/
 
@@ -11,41 +12,7 @@ sb = st.sidebar
 sbex = lambda title : sb.expander(title)
 
 dfdata = pd.read_excel('Data/marks.xlsx')
-
-def clean():
-    rdata = dfdata
-    names_list = rdata.iloc[0].tolist()
-
-    for i, value in enumerate(names_list):
-        if type(value) == float:
-            names_list[i] = str(value)
-
-    c = ['D1', 'Q1', 'A1', 'TOT1', 'D2', 'Q2', 'A2', 'TOT2']
-    f = []
-
-    s = None
-    count = 0
-    for n in names_list:
-        if n != 'nan':
-            if count != 0:
-                f.append(s + '_' + 'Avg')
-                count = 0
-            s = n
-            f.append(n)
-
-        if n == 'nan':
-            if s in f:
-                f.remove(s)
-            f.append(s + '_' + c[count])
-            count += 1
-
-    rdata.columns = f
-    rdata.drop(dfdata.index[0:4], inplace=True)
-    rdata.drop(columns=['Sl.No', 'DBMS LAB', 'JAVA',
-               'ADE LAV', 'PDS LAB'], inplace=True)
-    return rdata
-
-clean_data = clean()
+clean_data = h.clean(dfdata)
 
 def get_compare_state():
     with sbex('Compare state'):
@@ -167,17 +134,77 @@ def averages():
             st.plotly_chart(cchartf(fig), use_container_width=True)
     
     with st.expander('Averages'):
-        data_state(get_averages(), use_container_width=True)
+        data_state(get_averages())
         
-a,mks, cd = st.tabs(['Avgs','Marks', 'Data'])
+class totals:
+    tdata = None 
+    subjects = None
+
+    def __init__(self,cdata : pd.DataFrame):
+        self.tdata = self.get_totals(cdata)
+
+    def get_totals(self,cdata) -> pd.DataFrame:
+        rdata = cdata
+        c = rdata.columns.tolist()
+        mid1 = [element for element in c if element.endswith("_TOT1") ]
+        mid2 = [element for element in c if element.endswith("_TOT2") ]
+        mand = ['Roll.No', 'Name of the Student', 'Section']
+        return rdata[mand+mid1+mid2]
+
+    def show_totals(self):
+        data_state(self.tdata)
+
+    def get_mid_marks(self,student: pd.DataFrame):
+        rdata = student
+        c = rdata.columns.tolist()
+        mid1 = [element for element in c if element.endswith("1")]
+        self.subjects = [n.split('_')[0] for n in mid1]
+        mid1 = rdata.loc[0,mid1[0]:mid1[-1]].tolist()
+        mid2 = [element for element in c if element.endswith("2")]
+        mid2 = rdata.loc[0,mid2[0]:mid2[-1]].tolist()
+        return mid1,mid2
+
+    def totals_graph(self,student: str,want_avg = None):
+        rdata = self.tdata
+        est = rdata[rdata['Roll.No'] == student].reset_index(drop=True)
+        data = []
+        mid1, mid2 = self.get_mid_marks(est)
+        data.append(graphy(name='Mid1',x=self.subjects,y=mid1))
+        data.append(graphy(name='Mid2',x=self.subjects,y=mid2))
+        marks_list = None
+        if want_avg:
+            marks_list = get_avg_marks(student)
+            data.append(go.Scatter(name='avg',x = self.subjects,y=marks_list,line_color='#F8F9F9'))
+        fig = go.Figure(data=data)
+        st.plotly_chart(cchartf(fig),use_container_width=True)
+
+es = lambda message : st.write(message)
+
+mks,a, cd = st.tabs(['Marks','Avg', 'Data'])
 
 with a:
     averages()
-    
-with mks:
-    pass
 
+with mks:
+    rms = totals(clean_data)
+
+    with st.expander('Graph'):
+        c = st.columns([1,9])
+
+    with c[0]:
+        for n in range(3):
+            es("")
+        add_averages = st.checkbox('averages')
+        section_selection = st.selectbox(
+            'sections: ', list(set(clean_data['Section'])))
+        stotal = clean_data[clean_data['Section'] == section_selection]['Roll.No'].tolist()
+        sselection = st.selectbox('Students: ',stotal)
+
+    with c[1]:
+        rms.totals_graph(sselection,add_averages)
+    with st.expander("Total's Data"):
+        rms.show_totals()
+    
 with cd:
     with st.expander('Data'):
-        data_state(clean_data,use_container_width=True)
-    
+        data_state(clean_data)
