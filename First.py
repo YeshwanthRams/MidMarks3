@@ -94,7 +94,7 @@ def cchartf(figure: px._chart_types) -> px._chart_types:
         )
     )
     # figure.update_layout(plot_bgcolor="#000000") figure.update_xaxes(showgrid=False) figure.update_yaxes(showgrid=False)
-    # return figure
+    return figure
 
 def get_averages():
     rdata = clean_data
