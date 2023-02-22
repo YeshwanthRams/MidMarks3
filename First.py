@@ -163,11 +163,14 @@ def averages():
     with st.expander('Averages'):
         data_state(get_averages(), use_container_width=True)
         
-a, cd = st.tabs(['Avgs', 'Data'])
+a,mks, cd = st.tabs(['Avgs','Marks', 'Data'])
 
 with a:
     averages()
-        
+    
+with mks:
+    pass
+
 with cd:
     with st.expander('Data'):
         data_state(clean_data,use_container_width=True)
